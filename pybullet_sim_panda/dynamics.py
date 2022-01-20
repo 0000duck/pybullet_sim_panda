@@ -5,8 +5,6 @@ from pybullet_sim_panda.kinematics import PandaKinematics
 class PandaDynamics(PandaKinematics):
     def __init__(self, client, uid, pos=None, ori=None):
         super().__init__(client, uid, pos, ori)
-        
-        
         self._control_mode = "torque"
         self._dof = 7
 
@@ -77,4 +75,4 @@ class PandaDynamics(PandaKinematics):
 
 
 if __name__ == "__main__":
-    pass
+    print("Panda Dynamics Model")

@@ -41,7 +41,7 @@ for i in range(int(DURATION/stepsize)):
     
     target_torque = [80,-80,80,80,10,10,10]
     panda.setTargetTorques(target_torque)
-    print(panda._arm_joints)
+    # print(panda._arm_joints)
 
 
     t += stepsize
