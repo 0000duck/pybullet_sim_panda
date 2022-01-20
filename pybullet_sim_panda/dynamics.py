@@ -1,19 +1,11 @@
-from pybullet_sim_panda.kinematics import PandaConfig
-import pybullet as p
+from pybullet_sim_panda.kinematics import PandaKinematics
 
 
-class PandaDynamics(PandaConfig):
+
+class PandaDynamics(PandaKinematics):
     def __init__(self, client, uid, pos=None, ori=None):
-        super().__init__()
-        self._client = client
-        self._uid = uid
-        if pos is None:
-            pos = [0, 0, 0.05]
-        if ori is None:
-            ori = [0, 0, 0, 1]
+        super().__init__(client, uid, pos, ori)
         
-        self._robot = self._client.loadURDF(self._urdf_path, useFixedBase=True, flags=p.URDF_USE_SELF_COLLISION)
-        self._client.resetBasePositionAndOrientation(self._robot, pos, ori)
         
         self._control_mode = "torque"
         self._dof = 7
@@ -39,7 +31,7 @@ class PandaDynamics(PandaConfig):
     def resetController(self):
         self._client.setJointMotorControlArray(bodyUniqueId=self._robot,
                                                jointIndices=self._arm_joints,
-                                               controlMode=p.VELOCITY_CONTROL,
+                                               controlMode=self._client.VELOCITY_CONTROL,
                                                forces=[0. for i in range(self._dof)])
 
     def setControlMode(self, mode):
@@ -56,7 +48,7 @@ class PandaDynamics(PandaConfig):
         self._target_pos = target_pos
         self._client.setJointMotorControlArray(bodyUniqueId=self._robot,
                                                jointIndices=self._arm_joints,
-                                               controlMode=p.POSITION_CONTROL,
+                                               controlMode=self._client.POSITION_CONTROL,
                                                targetPositions=self._target_pos,
                                                forces=self._max_torque,
                                                positionGains=self._position_control_gain_p,
@@ -66,7 +58,7 @@ class PandaDynamics(PandaConfig):
         self._target_torque = target_torque
         self._client.setJointMotorControlArray(bodyUniqueId=self._robot,
                                                jointIndices=self._arm_joints,
-                                               controlMode=p.TORQUE_CONTROL,
+                                               controlMode=self._client.TORQUE_CONTROL,
                                                forces=self._target_torque)
     
     def setPositionControlGains(self, p=None, d=None):
