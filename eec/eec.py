@@ -15,6 +15,12 @@ class EEC:
         if np.linalg.norm(self._eec) == 0:
             self._eec = (2*k*np.pi + theta) * np.array([0,0,1.]).astype(np.float64)
         
+        self._R_bar = sm.base.exp2r(self._eec)
+        try:
+            self._error = sm.base.trlog(self._R_bar.T @ R_init, check=False, twist=True)
+        except:
+            self._error = np.zeros(3).astype(np.float64)
+
         self._BUFFER_SIZE = buffer_size
         self._buffer_eec = []
         self._buffer_unit = []
@@ -28,23 +34,20 @@ class EEC:
         self._gain = gain
 
 
-    def update(self, R, w=None):
-        if w == None: # When w cannot be sensored. To be modified.
-            w = vee(R.T @ ((R-self._R)/self._dt))
-        
-        R_bar = sm.base.exp2r(self._eec)
+    def update(self, R, w):
+        self._R_bar = sm.base.exp2r(self._eec)
         try:
-            error = sm.base.trlog(R_bar.T @ R, check=False, twist=True)
+            self._error = sm.base.trlog(self._R_bar.T @ R, check=False, twist=True)
         except:
-            error = np.zeros(3).astype(np.float64)
+            self._error = np.zeros(3).astype(np.float64)
         
-        w_bar = self._gain*error + R_bar.T @ R @ w
+        w_bar = self._gain*self._error + self._R_bar.T @ R @ w
 
         eec_norm = np.linalg.norm(self._eec)
         self._k, self._theta = eec_norm//(2*np.pi), eec_norm%(2*np.pi)
         if self._theta > np.pi:
             self._theta -= 2*np.pi
-            self.k += 1
+            self._k += 1
         
         if abs(self._theta) > self._theta_b12:
             # print("Algorithm 1")
@@ -59,7 +62,7 @@ class EEC:
 
         elif abs(self._theta) > self._theta_b23 or self._k == 0 or self._theta == np.pi:
             # print("Algorithm 2")
-            temp_vec = sm.base.trlog(R_bar @ sm.base.exp2r(self._dt*w_bar), twist=True)
+            temp_vec = sm.base.trlog(self._R_bar @ sm.base.exp2r(self._dt*w_bar), twist=True)
             theta_next = np.linalg.norm(temp_vec)
             u_next = temp_vec / theta_next
 
@@ -72,7 +75,7 @@ class EEC:
 
         else:
             # print("Algorithm 3")
-            R_bar_next = R_bar @ sm.base.exp2r(self._dt*w_bar)
+            R_bar_next = self._R_bar @ sm.base.exp2r(self._dt*w_bar)
             if np.trace(R_bar_next) >= 3:
                 theta_next = 0
                 u_next = np.array([0., 0., 1.]).astype(np.float64)
@@ -136,3 +139,9 @@ class EEC:
                     u_star /= np.linalg.norm(u_star)
                     self._eec = (2*self._k*np.pi - theta_next) * u_star
         
+        # Buffer update
+        for i in range(self._BUFFER_SIZE-1, 0, -1):
+            self._buffer_eec[i] = copy.deepcopy(self._buffer_eec[i-1])
+            self._buffer_unit[i] = copy.deepcopy(self._buffer_unit[i-1])
+        self._buffer_eec[0] = copy.deepcopy(self._eec)
+        self._buffer_unit[0] = self._eec / np.linalg.norm(self._eec)
