@@ -1,8 +1,8 @@
-from pybullet_sim_panda.kinematics import PandaKinematics
+from pybullet_sim_panda.kinematicsControl import PandaKinematics_control
 
 
 
-class PandaDynamics(PandaKinematics):
+class PandaDynamics(PandaKinematics_control):
     def __init__(self, client, uid, pos=None, ori=None):
         super().__init__(client, uid, pos, ori)
         self._control_mode = "torque"
