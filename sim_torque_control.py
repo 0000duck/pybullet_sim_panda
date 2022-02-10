@@ -6,7 +6,7 @@ from pybullet_sim_panda.dynamics import PandaDynamics
 
 
 
-RATE = 240.
+RATE = 240. # default: 240Hz
 REALTIME = 0
 DURATION = 10
 
@@ -20,9 +20,9 @@ p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=30, cameraPitch=-20, 
 p.setAdditionalSearchPath(pybullet_data.getDataPath()) # for loading plane
 
 p.resetSimulation() #init
-p.setTimeStep(1/RATE)
+# p.setTimeStep(1/RATE)
 p.setRealTimeSimulation(REALTIME)
-p.setGravity(0, 0, -9.81) #set gravity
+p.setGravity(0, 0, 0) #set gravity
 
 plane_id = p.loadURDF("plane.urdf", useFixedBase=True) # load plane
 p.changeDynamics(plane_id,-1,restitution=.95)
@@ -39,7 +39,7 @@ for i in range(int(DURATION/stepsize)):
         panda.setControlMode("torque")
         target_torque = [0,0,0,0,0,0,0]
     
-    target_torque = [80,-80,80,80,10,10,10]
+    target_torque = [1,0,0,0,0,0,0]
     panda.setTargetTorques(target_torque)
     # print(panda._arm_joints)
 
