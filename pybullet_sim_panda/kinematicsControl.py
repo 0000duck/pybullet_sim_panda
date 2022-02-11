@@ -47,7 +47,7 @@ class PandaConfig_control:
         """ (w, x, y, z) -> (ux, uy, uz)*theta
         """
         theta = np.arccos(ori[0])*2
-        return np.array(theta*[ori[1], ori[2], ori[3]]/np.sin(theta/2), np.float64)
+        return np.array([ori[1], ori[2], ori[3]]/np.sin(theta/2)*theta, np.float64)
 
 
 class PandaKinematics_control(PandaConfig_control):
@@ -136,7 +136,7 @@ class PandaKinematics_control(PandaConfig_control):
         """
         result = self._client.getLinkState(self._robot, link_index)
         pos, ori = np.array(result[0]), np.array(result[1])
-        ori = self.xyzw_to_wxyz(ori)
+        ori = self.wxyz_to_exp(self.xyzw_to_wxyz(ori))
         return pos, ori
     
     def get_ee_pose(self):
