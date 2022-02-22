@@ -178,7 +178,7 @@ class PandaKinematics_control(PandaConfig_control):
             pos, ori = self.get_ee_pose()
         else:
             pos, ori = self.FK(arm_positions)
-        return SE3(ori, pos).inv().to_adjoint() @ space_jac
+        return SE3(ori, pos).inv().to_adjoint() @ space_jac # Has a error
 
     def FK(self, arm_positions):
         """get Forward Kinematics of the joint positions

@@ -13,7 +13,7 @@ class EEC:
         self._theta = theta
         self._eec = (2*k*np.pi + theta) * sm.base.trlog(R_init, twist=True)
         if np.linalg.norm(self._eec) == 0:
-            self._eec = (2*k*np.pi + theta) * np.array([0,0,1.]).astype(np.float64)
+            self._eec = (2*k*np.pi + theta) * np.array([0,0,1.], np.float64)
         
         self._R_bar = sm.base.exp2r(self._eec)
         try:
@@ -33,6 +33,8 @@ class EEC:
         self._theta_b23 = theta_b23
         self._gain = gain
 
+    def get_unit_vector(self):
+        return self._eec/np.linalg.norm(self._eec)
 
     def update(self, R, w):
         self._R_bar = sm.base.exp2r(self._eec)
