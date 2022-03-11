@@ -70,10 +70,9 @@ class EEC:
             self._buffer_eec[0] = copy.deepcopy(self._eec)
             self._buffer_unit[0] = self._eec / np.linalg.norm(self._eec)
 
-        elif self._theta != 0.0 and (abs(self._theta) > self._theta_b23 or self._k == 0 or self._theta == np.pi):
+        elif abs(self._theta) > self._theta_b23 and self._k == 0 or self._theta == np.pi:
             # print("Algorithm 2")
             temp_vec = trLog(self._R_bar @ sm.base.exp2r(self._dt*w_bar), twist=True)
-
             theta_next = np.linalg.norm(temp_vec)
             u_next = temp_vec / theta_next
 

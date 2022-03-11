@@ -25,7 +25,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath()) # for loading plane
 
 p.resetSimulation() #init
 p.setRealTimeSimulation(REALTIME)
-p.setGravity(0, 0, -9.81) #set gravity
+p.setGravity(0, 0, 0) #set gravity
 
 plane_id = p.loadURDF("plane.urdf", useFixedBase=True) # load plane
 p.changeDynamics(plane_id,-1,restitution=.95)
@@ -104,14 +104,15 @@ for i in range(int(DURATION/stepsize)):
     
     
     Fb = -d_term - p_term
-    print(Fb)
-    print(panda.get_body_jacobian())
-    # print(eec_panda._eec)
+    Jb = panda.get_body_jacobian()
+    tau = Jb.T @ Fb
+    print(tau)
 
 
 
 
-    target_torque = [0,0,0,0,0,0,0]
+
+    target_torque = tau
     panda.setTargetTorques(target_torque)
     # print(panda.get_ee_pose(exp_flag=True))
 
