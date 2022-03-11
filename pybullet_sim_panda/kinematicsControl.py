@@ -139,7 +139,7 @@ class PandaKinematics_control(PandaConfig_control):
         ori = self.xyzw_to_wxyz(ori)
         return pos, ori
     
-    def get_ee_pose(self, exp_flag=True):
+    def get_ee_pose(self, exp_flag=False):
         """get the position/orientation of the end-effector (between the fingers)
 
         :return [np.ndarray(3), np.ndarray(4)]: The position/orientation of the end-effector frame.

@@ -55,11 +55,11 @@ K_d = 1
 
 target_R = sm.base.exp2r(target_ori)
 
-R = sm.base.exp2r(panda.get_ee_pose()[1])
+R = sm.base.exp2r(panda.get_ee_pose(exp_flag=True)[1])
 R_past = copy.deepcopy(R)
 R_dot = (R-R_past)/stepsize
 
-pos_past = panda.get_ee_pose()[0]
+pos_past = panda.get_ee_pose(exp_flag=True)[0]
 R_e = target_R.T @ R
 # if np.trace(R_e) >= 3:
 #     eps_e = np.zeros(3, np.float64)
@@ -82,7 +82,7 @@ for i in range(int(DURATION/stepsize)):
         panda.setControlMode("torque")
         target_torque = [0,0,0,0,0,0,0]
     
-    pos, ori = panda.get_ee_pose()
+    pos, ori = panda.get_ee_pose(exp_flag=True)
     pos_error = pos - target_pos
     # ori_error = sm.base.trlog(target_R.T @ R, twist=True)
     vel = (pos-pos_past)/stepsize
@@ -113,7 +113,7 @@ for i in range(int(DURATION/stepsize)):
 
     target_torque = [0,0,0,0,0,0,0]
     panda.setTargetTorques(target_torque)
-    # print(panda.get_ee_pose())
+    # print(panda.get_ee_pose(exp_flag=True))
 
 
     t += stepsize
