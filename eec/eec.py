@@ -11,37 +11,38 @@ class EEC:
         self._R = R_init
         self._k = k
         self._theta = theta
-        self._eec = (2*k*np.pi + theta) * sm.base.trlog(R_init, twist=True)
-        if np.linalg.norm(self._eec) == 0:
-            self._eec = (2*k*np.pi + theta) * np.array([0,0,1.], np.float64)
+        self._eec = (2*k*np.pi + theta) * trLog(R_init, twist=True)
         
         self._R_bar = sm.base.exp2r(self._eec)
-        try:
-            self._error = sm.base.trlog(self._R_bar.T @ R_init, check=False, twist=True)
-        except:
-            self._error = np.zeros(3).astype(np.float64)
+        self._error = trLog(self._R_bar.T @ R_init, check=False, twist=True)
 
         self._BUFFER_SIZE = buffer_size
         self._buffer_eec = []
         self._buffer_unit = []
-        for i in range(self._BUFFER_SIZE):
-            self._buffer_eec.append(copy.deepcopy(self._eec))
-            self._buffer_unit.append(self._buffer_eec[i] / np.linalg.norm(self._buffer_eec[i]))
+
+        if self._theta != 0:
+            for i in range(self._BUFFER_SIZE):
+                self._buffer_eec.append(copy.deepcopy(self._eec))
+                self._buffer_unit.append(self._buffer_eec[i] / np.linalg.norm(self._buffer_eec[i]))
+        else:
+            for i in range(self._BUFFER_SIZE):
+                self._buffer_eec.append(copy.deepcopy(self._eec))
+                self._buffer_unit.append(np.array([0,0,1], np.float64))
+
         
         self._dt = dt
         self._theta_b12 = theta_b12
         self._theta_b23 = theta_b23
         self._gain = gain
 
+
     def get_unit_vector(self):
-        return self._eec/np.linalg.norm(self._eec)
+        return self._buffer_unit[0]
+
 
     def update(self, R, w):
         self._R_bar = sm.base.exp2r(self._eec)
-        try:
-            self._error = sm.base.trlog(self._R_bar.T @ R, check=False, twist=True)
-        except:
-            self._error = np.zeros(3).astype(np.float64)
+        self._error = trLog(self._R_bar.T @ R, check=False, twist=True)
         
         w_bar = self._gain*self._error + self._R_bar.T @ R @ w
 
@@ -62,9 +63,17 @@ class EEC:
             eec_dot = U @ np.linalg.inv(A) @ b
             self._eec += self._dt * eec_dot
 
-        elif abs(self._theta) > self._theta_b23 or self._k == 0 or self._theta == np.pi:
+            # Buffer update
+            for i in range(self._BUFFER_SIZE-1, 0, -1):
+                self._buffer_eec[i] = copy.deepcopy(self._buffer_eec[i-1])
+                self._buffer_unit[i] = copy.deepcopy(self._buffer_unit[i-1])
+            self._buffer_eec[0] = copy.deepcopy(self._eec)
+            self._buffer_unit[0] = self._eec / np.linalg.norm(self._eec)
+
+        elif self._theta != 0.0 and (abs(self._theta) > self._theta_b23 or self._k == 0 or self._theta == np.pi):
             # print("Algorithm 2")
-            temp_vec = sm.base.trlog(self._R_bar @ sm.base.exp2r(self._dt*w_bar), twist=True)
+            temp_vec = trLog(self._R_bar @ sm.base.exp2r(self._dt*w_bar), twist=True)
+
             theta_next = np.linalg.norm(temp_vec)
             u_next = temp_vec / theta_next
 
@@ -75,6 +84,13 @@ class EEC:
             else:
                 self._eec = eec_2
 
+            # Buffer update
+            for i in range(self._BUFFER_SIZE-1, 0, -1):
+                self._buffer_eec[i] = copy.deepcopy(self._buffer_eec[i-1])
+                self._buffer_unit[i] = copy.deepcopy(self._buffer_unit[i-1])
+            self._buffer_eec[0] = copy.deepcopy(self._eec)
+            self._buffer_unit[0] = u_next
+
         else:
             # print("Algorithm 3")
             R_bar_next = self._R_bar @ sm.base.exp2r(self._dt*w_bar)
@@ -82,7 +98,7 @@ class EEC:
                 theta_next = 0
                 u_next = np.array([0., 0., 1.]).astype(np.float64)
             else:
-                temp_vec = sm.base.trlog(R_bar_next, twist=True)
+                temp_vec = trLog(R_bar_next, twist=True)
                 theta_next = np.linalg.norm(temp_vec)
                 u_next = temp_vec / theta_next
 
@@ -141,9 +157,9 @@ class EEC:
                     u_star /= np.linalg.norm(u_star)
                     self._eec = (2*self._k*np.pi - theta_next) * u_star
         
-        # Buffer update
-        for i in range(self._BUFFER_SIZE-1, 0, -1):
-            self._buffer_eec[i] = copy.deepcopy(self._buffer_eec[i-1])
-            self._buffer_unit[i] = copy.deepcopy(self._buffer_unit[i-1])
-        self._buffer_eec[0] = copy.deepcopy(self._eec)
-        self._buffer_unit[0] = self._eec / np.linalg.norm(self._eec)
+            # Buffer update
+            for i in range(self._BUFFER_SIZE-1, 0, -1):
+                self._buffer_eec[i] = copy.deepcopy(self._buffer_eec[i-1])
+                self._buffer_unit[i] = copy.deepcopy(self._buffer_unit[i-1])
+            self._buffer_eec[0] = copy.deepcopy(self._eec)
+            self._buffer_unit[0] = u_star

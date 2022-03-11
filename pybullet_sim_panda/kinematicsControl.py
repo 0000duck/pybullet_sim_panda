@@ -136,14 +136,18 @@ class PandaKinematics_control(PandaConfig_control):
         """
         result = self._client.getLinkState(self._robot, link_index)
         pos, ori = np.array(result[0]), np.array(result[1])
-        ori = self.wxyz_to_exp(self.xyzw_to_wxyz(ori))
+        ori = self.xyzw_to_wxyz(ori)
         return pos, ori
     
-    def get_ee_pose(self):
+    def get_ee_pose(self, exp_flag=True):
         """get the position/orientation of the end-effector (between the fingers)
 
         :return [np.ndarray(3), np.ndarray(4)]: The position/orientation of the end-effector frame.
         """
+        if exp_flag:
+            pos, ori = self.get_link_pose(self._ee_idx)
+            ori = self.wxyz_to_exp(ori)
+            return pos, ori
         return self.get_link_pose(self._ee_idx)
     
     def get_space_jacobian(self, arm_positions=None):
@@ -178,7 +182,7 @@ class PandaKinematics_control(PandaConfig_control):
             pos, ori = self.get_ee_pose()
         else:
             pos, ori = self.FK(arm_positions)
-        return SE3(ori, pos).inv().to_adjoint() @ space_jac # Has a error
+        return SE3(ori, pos).inv().to_adjoint() @ space_jac # Has an error
 
     def FK(self, arm_positions):
         """get Forward Kinematics of the joint positions

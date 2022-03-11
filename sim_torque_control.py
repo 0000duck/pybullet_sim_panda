@@ -61,14 +61,14 @@ R_dot = (R-R_past)/stepsize
 
 pos_past = panda.get_ee_pose()[0]
 R_e = target_R.T @ R
-# print(R_e)
-if np.trace(R_e) >= 3:
-    eps_e = np.array([0,0,1.], np.float64)
-else:
-    eps_e = sm.base.trlog(R_e, check=False, twist=True)
-# print(eps_e)
+# if np.trace(R_e) >= 3:
+#     eps_e = np.zeros(3, np.float64)
+#     R_e = np.eye(3, dtype=np.float64)
+# else:
+#     eps_e = sm.base.trlog(R_e, check=False, twist=True)
+eps_e = trLog(R_e, check=False, twist=True)
+
 eec_panda = EEC(dt=stepsize, theta=np.linalg.norm(eps_e), R_init=R_e)
-# print(eec_panda._eec)
 
 
 
@@ -104,10 +104,9 @@ for i in range(int(DURATION/stepsize)):
     
     
     Fb = -d_term - p_term
-    
-
-    Js = panda.get_space_jacobian()
-    print(eec_panda._eec)
+    print(Fb)
+    print(panda.get_body_jacobian())
+    # print(eec_panda._eec)
 
 
 
