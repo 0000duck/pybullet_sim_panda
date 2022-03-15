@@ -10,9 +10,15 @@ import copy
 
 
 
+def reverseTwist(twist):
+    a, b = twist[0:3], twist[3:]
+    return np.concatenate([b, a], axis=None)
+
+
+
 RATE = 240. # default: 240Hz
 REALTIME = 0
-DURATION = 10
+DURATION = 30
 
 t = 0.
 stepsize = 1/RATE
@@ -33,11 +39,10 @@ p.changeDynamics(plane_id,-1,restitution=.95)
 panda = PandaDynamics(p, uid) # load robot
 panda.setControlMode("torque")
 
-
-
-
-
-
+""" To make the damping terms zero
+"""
+for link_idx in panda._arm_joints:
+    p.changeDynamics(panda._robot, link_idx, jointDamping=0)
 
 
 
@@ -45,15 +50,11 @@ panda.setControlMode("torque")
 """
 target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
-# target_v = np.zeros(3, np.float64)
-# target_w = np.zeros(3, np.float64)
-K_p = 10
-K_r = 1
-K_d = 1
-
-
-
 target_R = sm.base.exp2r(target_ori)
+K_p = 10 # positional gain
+K_r = 1 # rotational gain
+K_d = 1 # damping gain
+
 
 R = sm.base.exp2r(panda.get_ee_pose(exp_flag=True)[1])
 R_past = copy.deepcopy(R)
@@ -61,11 +62,6 @@ R_dot = (R-R_past)/stepsize
 
 pos_past = panda.get_ee_pose(exp_flag=True)[0]
 R_e = target_R.T @ R
-# if np.trace(R_e) >= 3:
-#     eps_e = np.zeros(3, np.float64)
-#     R_e = np.eye(3, dtype=np.float64)
-# else:
-#     eps_e = sm.base.trlog(R_e, check=False, twist=True)
 eps_e = trLog(R_e, check=False, twist=True)
 
 eec_panda = EEC(dt=stepsize, theta=np.linalg.norm(eps_e), R_init=R_e)
@@ -73,18 +69,22 @@ eec_panda = EEC(dt=stepsize, theta=np.linalg.norm(eps_e), R_init=R_e)
 
 
 
+
+
+
+
+
 for i in range(int(DURATION/stepsize)):
     if i%RATE == 0:
         print("Simulation time: {:.3f}".format(t))
-    if i%(5*RATE) == 0:
-        panda.reset()
-        t = 0.
-        panda.setControlMode("torque")
-        target_torque = [0,0,0,0,0,0,0]
+    # if i%(10*RATE) == 0:
+    #     panda.reset()
+    #     t = 0.
+    #     panda.setControlMode("torque")
+    #     target_torque = [0,0,0,0,0,0,0]
     
     pos, ori = panda.get_ee_pose(exp_flag=True)
     pos_error = pos - target_pos
-    # ori_error = sm.base.trlog(target_R.T @ R, twist=True)
     vel = (pos-pos_past)/stepsize
 
     R = sm.base.exp2r(ori)
@@ -102,17 +102,24 @@ for i in range(int(DURATION/stepsize)):
     p_term = np.concatenate((pos_error*K_p, eec_panda._eec*K_r), axis=None)
     p_term = Convert.T @ p_term
     
-    
+    # (pos, ori) to (ori, pos)
+    p_term = reverseTwist(p_term)
+    d_term = reverseTwist(d_term)
+
     Fb = -d_term - p_term
     Jb = panda.get_body_jacobian()
     tau = Jb.T @ Fb
-    print(tau)
-
+    # print("==========Torque==========")
+    # print(tau)
+    # print("============EEC============")
+    # print(eec_panda._eec)
+    print(panda.get_space_jacobian())
 
 
 
 
     target_torque = tau
+    # target_torque = [0.01,0.01,0.01,0.01,0.01,0.01,0.01]
     panda.setTargetTorques(target_torque)
     # print(panda.get_ee_pose(exp_flag=True))
 
