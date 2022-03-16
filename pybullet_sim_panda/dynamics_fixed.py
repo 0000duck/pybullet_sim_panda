@@ -1,4 +1,4 @@
-from pybullet_sim_panda.kinematicsControl import PandaKinematics_control
+from pybullet_sim_panda.kinematicsControlFixed import PandaKinematics_control
 
 
 
@@ -6,11 +6,11 @@ class PandaDynamics(PandaKinematics_control):
     def __init__(self, client, uid, pos=None, ori=None):
         super().__init__(client, uid, pos, ori)
         self._control_mode = "torque"
-        self._dof = 7
+        self._dof = 6
 
-        self._position_control_gain_p = [0.01,0.01,0.01,0.01,0.01,0.01,0.01]
-        self._position_control_gain_d = [1.0,1.0,1.0,1.0,1.0,1.0,1.0]
-        self._max_torque = [87.,87.,87.,87.,12.,12.,12.]
+        self._position_control_gain_p = [0.01,0.01,0.01,0.01,0.01,0.01]
+        self._position_control_gain_d = [1.0,1.0,1.0,1.0,1.0,1.0]
+        self._max_torque = [87.,87.,87.,87.,12.,12.]
 
         self._target_pos = self._joint_mid_positions[:]
         self._target_torque = [0.]*self._dof
@@ -61,10 +61,10 @@ class PandaDynamics(PandaKinematics_control):
     
     def setPositionControlGains(self, p=None, d=None):
         if p:
-            assert len(p) == self._dof
+            assert len(p) == 6
             self._position_control_gain_p = p
         if d:
-            assert len(d) == self._dof
+            assert len(d) == 6
             self._position_control_gain_d = d
 
 

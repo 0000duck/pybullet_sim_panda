@@ -7,19 +7,19 @@ class PandaConfig_control:
     Franka Emika Panda: configurations, constants
     """
     def __init__(self):
-        self._urdf_path = "../urdf/panda.urdf"
+        self._urdf_path = "../urdf/panda_fixed.urdf"
         self._urdf_path = os.path.join(os.path.dirname(__file__), self._urdf_path)
         self._all_joints = range(12)
-        self._arm_joints = [i for i in range(7)]
+        self._arm_joints = [i for i in range(6)]
         self._finger_joints = [9,10]
         self._movable_joints = self._arm_joints + self._finger_joints
         self._ee_idx = 11
-        self._home_positions = [0,0,0,-np.pi/2,0,np.pi/2,np.pi/4]
+        self._home_positions = [0,0,0,-np.pi/2,0,np.pi/2]
         self._trans_eps = 0.05
-        self._joint_lower_limits = [-2.9671, -1.8326, -2.9671, -3.1416, -2.9671, -0.0873, -2.9671]
-        self._joint_upper_limits = [2.9671, 1.8326, 2.9671, 0.0, 2.9671, 3.8223, 2.9671]
-        self._joint_mid_positions = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675, 0.0]
-        self._joint_ranges = [5.9342, 3.6652, 5.9342, 3.1416, 5.9342, 3.9095999999999997, 5.9342]
+        self._joint_lower_limits = [-2.9671, -1.8326, -2.9671, -3.1416, -2.9671, -0.0873]
+        self._joint_upper_limits = [2.9671, 1.8326, 2.9671, 0.0, 2.9671, 3.8223]
+        self._joint_mid_positions = [0.0, 0.0, 0.0, -1.5708, 0.0, 1.8675]
+        self._joint_ranges = [5.9342, 3.6652, 5.9342, 3.1416, 5.9342, 3.9095999999999997]
     
     def get_joint_attribute_names(self):
         """ this string list used to parse p.getJointInfo()
@@ -104,7 +104,6 @@ class PandaKinematics_control(PandaConfig_control):
 
         :param arm_positions [array(7)]: joint positions of arms
         """
-        assert len(arm_positions) == 7
         for joint_idx, joint_value in enumerate(arm_positions):
             self._client.resetJointState(self._robot, joint_idx, joint_value, targetVelocity=0)
 
@@ -159,7 +158,7 @@ class PandaKinematics_control(PandaConfig_control):
         if arm_positions is None:
             joint_positions = self.get_states(target="movable")["position"]
         else:
-            assert len(arm_positions) == 7
+            assert len(arm_positions) == 6
             joint_positions = list(arm_positions) + [0, 0]
         n = len(self._movable_joints)
         trans, rot = self._client.calculateJacobian(bodyUniqueId=self._robot,

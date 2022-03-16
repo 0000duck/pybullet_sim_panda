@@ -2,7 +2,7 @@ import pybullet as p
 import pybullet_data
 from pybullet_sim_panda.utils import *
 import time
-from pybullet_sim_panda.dynamics import PandaDynamics
+from pybullet_sim_panda.dynamics_fixed import PandaDynamics
 import spatialmath as sm
 from eec.eec import EEC
 from eec.subfunctions import *
@@ -51,7 +51,7 @@ for link_idx in panda._arm_joints:
 target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
-K_p = 10 # positional gain
+K_p = 8 # positional gain
 K_r = 1 # rotational gain
 K_d = 1 # damping gain
 
@@ -113,13 +113,15 @@ for i in range(int(DURATION/stepsize)):
     # print(tau)
     # print("============EEC============")
     # print(eec_panda._eec)
-    print(panda.get_space_jacobian())
+    # diction = panda._get_joint_info()
+    # for i in range(12):
+    #     print((diction[i]["joint_index"], diction[i]["joint_name"], diction[i]["joint_type"], diction[i]["q_index"]))
 
 
 
 
     target_torque = tau
-    # target_torque = [0.01,0.01,0.01,0.01,0.01,0.01,0.01]
+    # target_torque = [0]*panda._dof
     panda.setTargetTorques(target_torque)
     # print(panda.get_ee_pose(exp_flag=True))
 

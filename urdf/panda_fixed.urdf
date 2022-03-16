@@ -221,13 +221,11 @@
     </collision>
   </link>
   
-  <joint name="panda_joint7" type="revolute">
-    <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973"/>
+  <joint name="panda_joint7" type="fixed">
     <origin rpy="1.57079632679 0 0" xyz="0.088 0 0"/>
     <parent link="panda_link6"/>
     <child link="panda_link7"/>
     <axis xyz="0 0 1"/>
-    <limit effort="12" lower="-2.9671" upper="2.9671" velocity="2.6100"/>
   </joint>
   
   <link name="panda_link8">
