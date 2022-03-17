@@ -2,7 +2,7 @@ import pybullet as p
 import pybullet_data
 from pybullet_sim_panda.utils import *
 import time
-from pybullet_sim_panda.dynamics_fixed import PandaDynamics
+from pybullet_sim_panda.dynamicsFixed import PandaDynamics
 import spatialmath as sm
 from eec.eec import EEC
 from eec.subfunctions import *
@@ -18,7 +18,7 @@ def reverseTwist(twist):
 
 RATE = 240. # default: 240Hz
 REALTIME = 0
-DURATION = 30
+DURATION = 60
 
 t = 0.
 stepsize = 1/RATE
@@ -41,8 +41,8 @@ panda.setControlMode("torque")
 
 """ To make the damping terms zero
 """
-for link_idx in panda._arm_joints:
-    p.changeDynamics(panda._robot, link_idx, jointDamping=0)
+# for link_idx in panda._arm_joints:
+#     p.changeDynamics(panda._robot, link_idx, jointDamping=0)
 
 
 
@@ -51,9 +51,9 @@ for link_idx in panda._arm_joints:
 target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
-K_p = 8 # positional gain
-K_r = 1 # rotational gain
-K_d = 1 # damping gain
+K_p = 4 # propotional(positional) gain
+K_r = 4 # propotional(rotational) gain
+K_d = 2 # damping gain
 
 
 R = sm.base.exp2r(panda.get_ee_pose(exp_flag=True)[1])
@@ -83,6 +83,7 @@ for i in range(int(DURATION/stepsize)):
     #     panda.setControlMode("torque")
     #     target_torque = [0,0,0,0,0,0,0]
     
+
     pos, ori = panda.get_ee_pose(exp_flag=True)
     pos_error = pos - target_pos
     vel = (pos-pos_past)/stepsize
@@ -91,10 +92,12 @@ for i in range(int(DURATION/stepsize)):
     R_dot = (R-R_past)/stepsize
     R_e = target_R.T @ R
 
-    wb = vee(R.T @ R_dot)
-    eec_panda.update(R_e, wb)
+    vel_b = R.T @ vel
+    w_b = vee(R.T @ R_dot)
+    eec_panda.update(R_e, w_b)
     
-    V_b = np.concatenate((vel, wb), axis=None)
+    
+    V_b = np.concatenate((vel_b, w_b), axis=None)
     d_term = V_b*K_d
 
     conv_ori = B(eec_panda.get_unit_vector()*eec_panda._theta) @ ((R_e.T @ sm.base.exp2r(eec_panda._eec)).T)
@@ -117,7 +120,7 @@ for i in range(int(DURATION/stepsize)):
     # for i in range(12):
     #     print((diction[i]["joint_index"], diction[i]["joint_name"], diction[i]["joint_type"], diction[i]["q_index"]))
 
-
+    # print(sm.base.exp2r(eec_panda._eec) @ R_e.T)
 
 
     target_torque = tau
