@@ -52,7 +52,11 @@ class PandaDynamics(PandaKinematics_control):
                                                positionGains=self._position_control_gain_p,
                                                velocityGains=self._position_control_gain_d)
 
-    def setTargetTorques(self, target_torque):
+    def setTargetTorques(self, target_torque, saturate = False):
+        if saturate:
+            for i in range(self._dof):
+                if abs(target_torque[i]) > self._max_torque[i]:
+                    target_torque[i] = target_torque[i]/abs(target_torque[i])*self._max_torque[i]
         self._target_torque = target_torque
         self._client.setJointMotorControlArray(bodyUniqueId=self._robot,
                                                jointIndices=self._arm_joints,

@@ -52,7 +52,7 @@ panda.setControlMode("torque")
 target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
-K_p = 4 # propotional(positional) gain
+K_p = 10 # propotional(positional) gain
 K_r = 4 # propotional(rotational) gain
 K_d = 0.5 # damping gain
 
@@ -137,7 +137,7 @@ for i in range(int(DURATION/STEPSIZE)):
 
     target_torque = tau + tau_grav
     # target_torque = [0]*panda._dof
-    panda.setTargetTorques(target_torque)
+    panda.setTargetTorques(target_torque, saturate=True)
     # print(panda.get_ee_pose(exp_flag=True))
     # print(tau)
 
