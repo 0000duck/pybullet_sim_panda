@@ -3,7 +3,7 @@ import pybullet as p
 import pybullet_data
 from pybullet_sim_panda.utils import *
 import time
-from pybullet_sim_panda.dynamics import PandaDynamics
+from pybullet_sim_panda.dynamicsFixed import PandaDynamics
 import spatialmath as sm
 from eec.eec import EEC
 from eec.subfunctions import *
@@ -32,7 +32,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath()) # for loading plane
 
 p.resetSimulation() #init
 p.setRealTimeSimulation(REALTIME)
-p.setGravity(0, 0, -9.81) #set gravity
+p.setGravity(0, 0, 0) #set gravity
 
 plane_id = p.loadURDF("plane.urdf", useFixedBase=True) # load plane
 p.changeDynamics(plane_id,-1,restitution=.95)
@@ -54,7 +54,7 @@ target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
 K_p = 4 # propotional(positional) gain
 K_r = 4 # propotional(rotational) gain
-K_d = 0.5 # damping gain
+K_d = 2 # damping gain
 
 
 R = sm.base.exp2r(panda.get_ee_pose(exp_flag=True)[1])
@@ -132,10 +132,10 @@ for i in range(int(DURATION/STEPSIZE)):
 
     # print(sm.base.exp2r(eec_panda._eec) @ R_e.T)
 
-    tau_grav = panda.inverseDynamics(panda.get_states("all")["position"], [0.]*9, [0.]*9)[:-2]
+    # tau_grav = panda.inverseDynamics(panda.get_states("all")["position"], [0.]*9, [0.]*9)[:-2]
 
 
-    target_torque = tau + tau_grav
+    target_torque = tau
     # target_torque = [0]*panda._dof
     panda.setTargetTorques(target_torque)
     # print(panda.get_ee_pose(exp_flag=True))

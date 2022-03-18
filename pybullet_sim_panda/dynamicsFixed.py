@@ -67,6 +67,12 @@ class PandaDynamics(PandaKinematics_control):
             assert len(d) == 6
             self._position_control_gain_d = d
 
+    def inverseDynamics(self, objPos, objVel, objAcc):
+        return self._client.calculateInverseDynamics(self._robot,
+                                                        objPositions=objPos,
+                                                        objVelocities=objVel,
+                                                        objAccelerations=objAcc)
+
 
 
 

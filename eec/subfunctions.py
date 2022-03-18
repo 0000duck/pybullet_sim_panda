@@ -11,7 +11,7 @@ def B(eps):
 
 def hat(w):
     assert w.shape[0] == 3, "It is not a 3D vector."
-    return np.array([[0., -w[2], w[1]], [w[3], 0., -w[0]], [-w[1], w[0], 0]], np.float64)
+    return np.array([[0., -w[2], w[1]], [w[2], 0., -w[0]], [-w[1], w[0], 0]], np.float64)
 
 def vee(W):
     assert W.shape == (3,3), "It is not a 3x3 matrix."
