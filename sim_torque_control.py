@@ -1,4 +1,3 @@
-from re import S
 import pybullet as p
 import pybullet_data
 from pybullet_sim_panda.utils import *
