@@ -38,7 +38,7 @@ plane_id = p.loadURDF("plane.urdf", useFixedBase=True) # load plane
 p.changeDynamics(plane_id,-1,restitution=.95)
 
 panda = PandaDynamics(p, uid) # load robot
-panda.set_arm_positions([0,0,0,-np.pi/2,0,np.pi/2,-2.96])
+# panda.set_arm_positions([0,0,0,-np.pi/2,0,np.pi/2,np.pi/1.5])
 panda.setControlMode("torque")
 
 """ To make the damping terms zero
@@ -53,9 +53,9 @@ panda.setControlMode("torque")
 target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
-K_p = 10 # propotional(positional) gain
-K_r = 1 # propotional(rotational) gain
-K_d = 1 # damping gain
+K_p = 12 # propotional(positional) gain
+K_r = 5 # propotional(rotational) gain
+K_d = 0.5 # damping gain
 
 
 R = sm.base.exp2r(panda.get_ee_pose(exp_flag=True)[1])
@@ -64,9 +64,9 @@ R_dot = (R-R_past)/STEPSIZE
 
 pos_past = panda.get_ee_pose(exp_flag=True)[0]
 R_e = target_R.T @ R
-print(R_e)
+R_e_past = copy.deepcopy(R_e)
 
-eec_panda = EEC(dt=STEPSIZE, R_init=R_e, k=0)
+eec_panda = EEC(dt=STEPSIZE, R_init=R_e, k=3)
 # For checking the initial eec
 theta_bar = np.linalg.norm(eec_panda._eec)
 print(eec_panda._eec)
@@ -96,12 +96,17 @@ for i in range(int(DURATION/STEPSIZE)):
     R = sm.base.exp2r(ori)
     R_dot = (R-R_past)/STEPSIZE
     R_e = target_R.T @ R
+    R_e_dot = (R_e-R_e_past)/STEPSIZE
 
     vel_b = R.T @ vel
-    w_b = vee(R.T @ R_dot)
+    w_b = vee(R_e.T @ R_e_dot)
+    # w_b = vee(R.T @ R_dot)
     eec_panda.update(R_e, w_b)
 
-    print(R.T @ R_dot)
+    # print(R)
+    # print(R_dot)
+    # print(R.T @ R_dot)
+    # print("\n")
     
     V_b = np.concatenate((vel_b, w_b), axis=None)
     d_term = V_b*K_d
@@ -144,6 +149,7 @@ for i in range(int(DURATION/STEPSIZE)):
 
     R_past = copy.deepcopy(R)
     pos_past = pos
+    R_e_past = copy.deepcopy(R_e)
 
 
 
