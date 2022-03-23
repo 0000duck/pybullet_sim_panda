@@ -7,11 +7,15 @@ import copy
 
 
 class EEC:
-    def __init__(self, dt, theta, k=0, R_init=np.eye(3).astype(np.float64), theta_b12=np.pi/2, theta_b23=0.015, gain=10, buffer_size=3):
+    def __init__(self, dt, R_init=np.eye(3).astype(np.float64), k=0, theta_b12=np.pi/2, theta_b23=0.015, gain=10, buffer_size=3):
         self._R = R_init
         self._k = k
-        self._theta = theta
-        self._eec = (2*k*np.pi + theta) * trLog(R_init, twist=True)
+
+        self._theta = np.linalg.norm(trLog(R_init, twist=True))
+        if self._theta == 0:
+            self._eec = (2*k*np.pi + self._theta) * np.array([0,0,1], np.float64)
+        else:
+            self._eec = (2*k*np.pi + self._theta) * trLog(R_init, twist=True)
         
         self._R_bar = sm.base.exp2r(self._eec)
         self._error = trLog(self._R_bar.T @ R_init, check=False, twist=True)

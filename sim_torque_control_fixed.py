@@ -8,6 +8,7 @@ import spatialmath as sm
 from eec.eec import EEC
 from eec.subfunctions import *
 import copy
+import matplotlib.pyplot as plt
 
 
 
@@ -52,8 +53,8 @@ panda.setControlMode("torque")
 target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
-K_p = 4 # propotional(positional) gain
-K_r = 4 # propotional(rotational) gain
+K_p = 20 # propotional(positional) gain
+K_r = 5 # propotional(rotational) gain
 K_d = 2 # damping gain
 
 
@@ -65,13 +66,16 @@ pos_past = panda.get_ee_pose(exp_flag=True)[0]
 R_e = target_R.T @ R
 eps_e = trLog(R_e, check=False, twist=True)
 
-eec_panda = EEC(dt=STEPSIZE, theta=np.linalg.norm(eps_e), R_init=R_e)
+eec_panda = EEC(dt=STEPSIZE, R_init=R_e, k=3)
 
 
 
 
 
-
+time_list = []
+theta_bar_list = []
+pos_error_list = []
+rot_error_list = []
 
 
 
@@ -114,16 +118,15 @@ for i in range(int(DURATION/STEPSIZE)):
     Fb = -d_term - p_term
     Jb1 = panda.get_body_jacobian()
 
-    Js = panda.get_space_jacobian()
-    Adj_bs = np.concatenate((np.concatenate((R.T, np.zeros((3,3), np.float64)), axis=1), 
-                             np.concatenate((-R.T @ hat(pos), R.T), axis=1)), axis=0)
-    Jb2 = Adj_bs @ Js
+    # Js = panda.get_space_jacobian()
+    # Adj_bs = np.concatenate((np.concatenate((R.T, np.zeros((3,3), np.float64)), axis=1), 
+    #                          np.concatenate((-R.T @ hat(pos), R.T), axis=1)), axis=0)
+    # Jb2 = Adj_bs @ Js
 
-    print(np.linalg.norm(Jb1-Jb2))
 
     tau = Jb1.T @ Fb
-    # print("==========Torque==========")
-    # print(tau)
+    print("==========Torque==========")
+    print(tau)
     # print("============EEC============")
     # print(eec_panda._eec)
     # diction = panda._get_joint_info()
@@ -148,3 +151,25 @@ for i in range(int(DURATION/STEPSIZE)):
 
     R_past = copy.deepcopy(R)
     pos_past = pos
+
+
+    """ For data plotting
+    """
+    theta_bar = np.linalg.norm(eec_panda._eec)
+    time_list.append(t)
+    theta_bar_list.append(theta_bar)
+    pos_error_list.append(np.linalg.norm(pos_error))
+
+
+
+
+
+plt.figure(1)
+plt.plot(time_list, theta_bar_list)
+plt.xlabel("Time(s)")
+plt.ylabel("Angle(rad)")
+plt.figure(2)
+plt.plot(time_list, pos_error_list)
+plt.xlabel("Time(s)")
+plt.ylabel("Positional error(m)")
+plt.show()
