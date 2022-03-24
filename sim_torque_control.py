@@ -49,12 +49,13 @@ panda.setControlMode("torque")
 
 """ Target position and orientation is needed
 """
-target_pos = np.array([6.12636866e-01, -3.04817487e-12, 5.54489818e-01], np.float64)
+target_pos = np.array([0.4, 0, 0.8], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
-K_p = 20 # propotional(position) gain
+K_p = 30 # propotional(position) gain
 K_r = 1 # propotional(rotation) gain
-K_d = 0.6 # damping gain
+K_dp = 15
+K_dr = 0.6 # damping gain
 
 # For debugging
     # thetas = [np.pi/1.5, 0]
@@ -109,8 +110,8 @@ for i in range(int(DURATION/STEPSIZE)):
     w_b = vee(R.T @ R_dot)
     eec_panda.update(R_e, w_e_b)
 
-    V_b = np.concatenate((vel_b, w_b), axis=None)
-    d_term = V_b*K_d
+    d_term = np.concatenate((vel_b * K_dp, w_b * K_dr), axis=None)
+    # d_term = V_b*K_d
 
     conv_ori = B(eec_panda.get_unit_vector()*eec_panda._theta) @ ((R_e.T @ sm.base.exp2r(eec_panda._eec)).T)
     Convert = np.concatenate((np.concatenate((R, np.zeros((3,3), np.float64)), axis=1),
@@ -164,9 +165,12 @@ for i in range(int(DURATION/STEPSIZE)):
 plt.figure(1)
 plt.plot(time_list, theta_bar_list)
 plt.xlabel("Time(s)")
-plt.ylabel("Angle(rad)")
+plt.ylabel("EEC error(rad)")
+plt.title("EEC Error(theta_bar)")
+
 plt.figure(2)
 plt.plot(time_list, pos_error_list)
 plt.xlabel("Time(s)")
 plt.ylabel("Positional error(m)")
+plt.title("Positional Error")
 plt.show()
