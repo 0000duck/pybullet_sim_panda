@@ -1,13 +1,15 @@
+from matplotlib.pyplot import axis
 import numpy as np
 import os
-from spatial_math_mini import SE3
+import spatialmath as sm
 
 class PandaConfig_control:
     """
     Franka Emika Panda: configurations, constants
     """
     def __init__(self):
-        self._urdf_path = "../urdf/panda.urdf"
+        # self._urdf_path = "../urdf/panda.urdf"
+        self._urdf_path = "../urdf/panda_unlimited.urdf"
         self._urdf_path = os.path.join(os.path.dirname(__file__), self._urdf_path)
         self._all_joints = range(12)
         self._arm_joints = [i for i in range(7)]
@@ -175,16 +177,21 @@ class PandaKinematics_control(PandaConfig_control):
         """get the body jacobian of the current or the specific joint positions.
 
         :param arm_positions [array-like]: the input joint positions if None, use current joint positions, defaults to None
-        :return [np.ndarray(6,7)]: 6x7 space jacobian
+        :return [np.ndarray(6,7)]: 6x7 body jacobian
         """
-        space_jac = self.get_space_jacobian(arm_positions)
+        jac = self.get_space_jacobian(arm_positions)
         if arm_positions is None:
-            pos, ori = self.get_ee_pose()
+            ori = self.get_ee_pose(exp_flag=True)[1]
         else:
-            pos, ori = self.FK(arm_positions)
-        return SE3(ori, pos).inv().to_adjoint() @ space_jac
+            ori = self.FK(arm_positions, exp_flag=True)[1]
+        R_wb = sm.base.exp2r(ori)
+        conv = np.concatenate((np.concatenate((R_wb.T, np.zeros((3,3), np.float64)), axis=1),
+                               np.concatenate((np.zeros((3,3), np.float64), R_wb.T), axis=1)),
+                              axis=0)
+        return conv @ jac
+        
 
-    def FK(self, arm_positions):
+    def FK(self, arm_positions, exp_flag=False):
         """get Forward Kinematics of the joint positions
 
         :param arm_positions [array_like]: input joint positions
@@ -194,6 +201,8 @@ class PandaKinematics_control(PandaConfig_control):
         self.set_arm_positions(arm_positions)
         pos, ori = self.get_ee_pose()
         self.set_arm_positions(arm_positions_curr)
+        if exp_flag:
+            ori = self.wxyz_to_exp(ori)
         return pos, ori
 
     def IK(self, position, orientation=None):

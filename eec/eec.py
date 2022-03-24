@@ -11,11 +11,12 @@ class EEC:
         self._R = R_init
         self._k = k
 
-        self._theta = np.linalg.norm(trLog(R_init, twist=True))
+        ec = trLog(R_init, twist=True)
+        self._theta = np.linalg.norm(ec)
         if self._theta == 0:
-            self._eec = (2*k*np.pi + self._theta) * np.array([0,0,1], np.float64)
+            self._eec = 2*k*np.pi * np.array([0,0,1], np.float64)
         else:
-            self._eec = (2*k*np.pi + self._theta) * trLog(R_init, twist=True)
+            self._eec = (2*k*np.pi + self._theta) * (ec / self._theta)
         
         self._R_bar = sm.base.exp2r(self._eec)
         self._error = trLog(self._R_bar.T @ R_init, check=False, twist=True)
