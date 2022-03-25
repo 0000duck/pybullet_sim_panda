@@ -1,4 +1,5 @@
 from pybullet_sim_panda.kinematicsControl import PandaKinematics_control
+import numpy as np
 
 
 
@@ -76,6 +77,10 @@ class PandaDynamics(PandaKinematics_control):
                                                      objPositions=objPos,
                                                      objVelocities=objVel,
                                                      objAccelerations=objAcc)
+
+    def getMassMatrix(self, objPositions):
+        objPositions = list(objPositions)
+        return np.array(self._client.calculateMassMatrix(self._robot, objPositions=objPositions), np.float64)
 
 
 
