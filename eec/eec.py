@@ -113,14 +113,8 @@ class EEC:
             S1.insert(0, u_next)
             S2 = self._buffer_unit[:]
             S2.insert(0, -u_next)
-            S1_mean = np.zeros(3).astype(np.float64)
-            S2_mean = np.zeros(3).astype(np.float64)
-            for i in range(self._BUFFER_SIZE+1):
-                S1_mean += S1[i]
-            S1_mean /= (self._BUFFER_SIZE+1)
-            for i in range(self._BUFFER_SIZE+1):
-                S2_mean += S2[i]
-            S2_mean /= (self._BUFFER_SIZE+1)
+            S1_mean = (sum(S1)/(self._BUFFER_SIZE+1)).astype(np.float64)
+            S2_mean = (sum(S2)/(self._BUFFER_SIZE+1)).astype(np.float64)
             
             dist = 0
             idx1 = 0
@@ -130,7 +124,6 @@ class EEC:
                     idx1 = i
                     dist = d
             S1.pop(idx1)
-
             dist = 0
             idx2 = 0
             for i, u in enumerate(S2):
@@ -142,7 +135,6 @@ class EEC:
             
             idx1_bool = bool(idx1)
             idx2_bool = bool(idx2)
-
             if idx1_bool^idx2_bool == False:
                 u_star = np.mean(self._buffer_unit, axis=0)
                 u_star /= np.linalg.norm(u_star)

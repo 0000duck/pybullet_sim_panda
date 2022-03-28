@@ -84,6 +84,7 @@ time_list = []
 theta_bar_list = []
 pos_error_list = []
 rot_error_list = []
+joint_vel_list = []
 
 
 
@@ -161,6 +162,7 @@ for i in range(int(DURATION/STEPSIZE)):
     time_list.append(t)
     theta_bar_list.append(theta_bar)
     pos_error_list.append(np.linalg.norm(pos_error))
+    joint_vel_list.append(np.linalg.norm(joint_vel))
 
 
 
@@ -177,4 +179,12 @@ plt.plot(time_list, pos_error_list)
 plt.xlabel("Time(s)")
 plt.ylabel("Positional error(m)")
 plt.title("Positional Error")
+
+plt.figure(3)
+plt.plot(time_list, joint_vel_list)
+plt.xlabel("Time(s)")
+plt.ylabel("Joint space velocity norm(/s)")
+plt.title("Joint velocity norm")
+
 plt.show()
+
