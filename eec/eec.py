@@ -116,21 +116,23 @@ class EEC:
             S1_mean = (sum(S1)/(self._BUFFER_SIZE+1)).astype(np.float64)
             S2_mean = (sum(S2)/(self._BUFFER_SIZE+1)).astype(np.float64)
             
-            dist = 0
+            maxdist = 0
             idx1 = 0
             for i, u in enumerate(S1):
                 d = np.linalg.norm(u-S1_mean)
-                if dist < d:
+                # d = np.inner(u, S1_mean)
+                if maxdist < d: #
                     idx1 = i
-                    dist = d
+                    maxdist = d
             S1.pop(idx1)
-            dist = 0
+            maxdist = 0
             idx2 = 0
             for i, u in enumerate(S2):
                 d = np.linalg.norm(u-S2_mean)
-                if dist < d:
+                # d = np.inner(u, S2_mean)
+                if maxdist < d: #
                     idx2 = i
-                    dist = d
+                    maxdist = d
             S2.pop(idx2)
             
             idx1_bool = bool(idx1)

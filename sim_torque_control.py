@@ -29,7 +29,7 @@ def makeNullProjector(J, W):
 
 RATE = 240. # default: 240Hz
 REALTIME = 0
-DURATION = 40
+DURATION = 20
 STEPSIZE = 1/RATE
 
 t = 0.
@@ -61,7 +61,7 @@ target_pos = np.array([ 6.12636866e-01, -3.04817487e-12,  0.6], np.float64)
 target_ori = np.array([2.77158854, 1.14802956, 0.41420822], np.float64)
 target_R = sm.base.exp2r(target_ori)
 K_p = 30 # propotional(position) gain
-K_r = 1 # propotional(rotation) gain
+K_r = 2 # propotional(rotation) gain
 K_dp = 15 # damping(position) gain
 K_dr = 0.6 # damping(rotation) gain
 D_null = 1. # null-space damping 
@@ -76,7 +76,7 @@ R_dot = (R-R_past)/STEPSIZE
 pos_past = panda.get_ee_pose(exp_flag=True)[0]
 R_e = target_R.T @ R
 R_e_past = copy.deepcopy(R_e)
-eec_panda = EEC(dt=STEPSIZE, R_init=R_e, k=0)
+eec_panda = EEC(dt=STEPSIZE, R_init=R_e, k=3)
 
 
 
